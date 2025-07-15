@@ -8,10 +8,12 @@
 #include <signal.h>
 #include <errno.h>
 #include <time.h>
+#include <langinfo.h>
 
 #include "snakelib.c"
 
 struct SnakeGame *global_game;
+bool utf8;
 
 void sleep_ignore_interrupt(int s, int ns){
     struct timespec req = {s, ns}, rem;
@@ -36,31 +38,134 @@ int cy(int y){
     return HEIGHT/2-y + LINES/2;
 }
 
+wchar_t get_head_char(enum Input to, bool utf8){
+    if(!utf8){
+        // ASCII Fallback
+        return
+            to == UP ? '^' :
+            to == DOWN ? 'v' :
+            to == LEFT ? '<' :
+            to == RIGHT ? '>' : '?';
+    } else {
+        return
+            to == UP ? L'▴' :
+            to == DOWN ? L'▾':
+            to == LEFT ? L'◂' :
+            to == RIGHT ? L'▸' : L'?';
+    }
+}
+
+wchar_t get_body_char(enum Input to, enum Input from, bool tail, bool utf8){
+    if(!utf8){
+        // ASCII Fallback
+        if(tail){
+            from = to;
+        }
+        wchar_t wc = get_head_char(to, utf8);
+        return wc;
+
+        // if(from == UP || from == DOWN){
+        //     return (to == UP || to == DOWN) ? '|' : '+';
+        // } else if(from == RIGHT || from == LEFT){
+        //     return (to == RIGHT || to == LEFT) ? '-' : '+';
+        // }
+    } else {
+        if(tail){
+            return to==UP ? L'╵'
+                : to==DOWN ? L'╷'
+                : to==LEFT ? L'╴'
+                : to==RIGHT? L'╶':'?';
+        } else if(from == UP){
+            return
+                to==UP      ? L'!':
+                to==DOWN    ? L'│':
+                to==LEFT    ? L'┘':
+                to==RIGHT   ? L'└'
+                :'?';
+        } else if (from == DOWN){
+            return
+                to==UP      ? L'│':
+                to==DOWN    ? L'!':
+                to==LEFT    ? L'┐':
+                to==RIGHT   ? L'┌'
+                :'?';
+        } else if (from == LEFT){
+            return
+                to==UP      ? L'┘':
+                to==DOWN    ? L'┐':
+                to==LEFT    ? L'!':
+                to==RIGHT   ? L'─'
+                :'?';
+        } else if (from == RIGHT){
+            return
+                to==UP      ? L'└':
+                to==DOWN    ? L'┌':
+                to==LEFT    ? L'─':
+                to==RIGHT   ? L'!'
+                :'?';
+        }
+    }
+
+    return '?';
+}
+
+
+wchar_t get_apple_char(bool utf8){
+    return utf8 ? L'•' : 'O';
+}
+
+wchar_t get_bg_char(bool utf8){
+    return utf8 ? L'·' : '\'';
+}
+
+wchar_t get_border_char(enum Input side, bool utf8){
+    if(!utf8){
+        return (side == UP || side == DOWN) ? '=' : '|';
+    } else {
+        return (side == UP || side == DOWN) ? L'─' : L'│';
+    }
+}
+
+wchar_t get_corner_char(enum Input lr, enum Input ud, bool utf8){
+    if(!utf8){
+        return '+';
+    } else {
+        if(lr == LEFT){
+            return ud == UP ? L'┌' : L'└';
+        } else {
+            return ud == UP ? L'┐' : L'┘';
+        }
+    }
+}
+
 void draw_frame()
 {
     // Bottom Left
-    mvadd_wchar(cy(-1), cx(-1), L'└');
+    mvadd_wchar(cy(-1), cx(-1), get_corner_char(LEFT, DOWN, utf8));
     // Bottom Right
-    mvadd_wchar(cy(-1), cx(WIDTH), L'┘');
+    mvadd_wchar(cy(-1), cx(WIDTH), get_corner_char(RIGHT, DOWN, utf8));
     // Top Left
-    mvadd_wchar(cy(HEIGHT), cx(-1), L'┌');
+    mvadd_wchar(cy(HEIGHT), cx(-1), get_corner_char(LEFT, UP, utf8));
     // Top Right
-    mvadd_wchar(cy(HEIGHT), cx(WIDTH), L'┐');
+    mvadd_wchar(cy(HEIGHT), cx(WIDTH), get_corner_char(RIGHT, UP, utf8));
 
+    wchar_t wc = get_border_char(UP, utf8);
     for(int x = 0; x < WIDTH; ++x){
-        mvadd_wchar(cy(-1), cx(x), L'─');
-        mvadd_wchar(cy(HEIGHT), cx(x), L'─');
+        mvadd_wchar(cy(-1), cx(x), wc);
+        mvadd_wchar(cy(HEIGHT), cx(x), wc);
     }
+    wc = get_border_char(LEFT, utf8);
     for(int y = 0; y < HEIGHT; ++y){
-        mvadd_wchar(cy(y), cx(-1), L'│');
-        mvadd_wchar(cy(y), cx(WIDTH), L'│');
+        mvadd_wchar(cy(y), cx(-1), wc);
+        mvadd_wchar(cy(y), cx(WIDTH), wc);
     }
 }
 
 void clear_content()
 {
+    wchar_t dot_char = get_bg_char(utf8);
     wchar_t* dots = malloc((WIDTH + 1)*sizeof(wchar_t));
-    wmemset(dots, L'·', WIDTH);
+    wmemset(dots, dot_char, WIDTH);
 
     attron(A_DIM);
     for(int l = 0; l < HEIGHT; ++l){
@@ -160,59 +265,20 @@ void render(struct SnakeGame *game)
             }
         }
 
-        wc = '0';
-        if(i == 0){
-            // Tail
-            wc =
-                to==UP      ? L'╵':
-                to==DOWN    ? L'╷':
-                to==LEFT    ? L'╴':
-                to==RIGHT   ? L'╶'
-                :'?';
-        } else if(from == UP){
-            wc =
-                to==UP      ? L'!':
-                to==DOWN    ? L'│':
-                to==LEFT    ? L'┘':
-                to==RIGHT   ? L'└'
-                :'?';
-        } else if (from == DOWN){
-            wc =
-                to==UP      ? L'│':
-                to==DOWN    ? L'!':
-                to==LEFT    ? L'┐':
-                to==RIGHT   ? L'┌'
-                :'?';
-        } else if (from == LEFT){
-            wc =
-                to==UP      ? L'┘':
-                to==DOWN    ? L'┐':
-                to==LEFT    ? L'!':
-                to==RIGHT   ? L'─'
-                :'?';
-        } else if (from == RIGHT){
-            wc =
-                to==UP      ? L'└':
-                to==DOWN    ? L'┌':
-                to==LEFT    ? L'─':
-                to==RIGHT   ? L'!'
-                :'?';
-        }
+        wc = get_body_char(to, from, i==0, utf8);
 
         mvadd_wchar(cy(y), cx(x), wc);
     }
     // -- Head
     y = game->snake[game->snake_head_ind][1];
     x = game->snake[game->snake_head_ind][0];
-    wc =game->last_input == UP ? L'▴' :
-        game->last_input == DOWN ? L'▾':
-        game->last_input == LEFT ? L'◂' :
-        game->last_input == RIGHT ? L'▸' : L'?';
+    wc = get_head_char(game->last_input, utf8);
     mvadd_wchar(cy(y), cx(x), wc);
     
 
     // - Apple
-    mvadd_wchar(cy(game->apple_pos[1]), cx(game->apple_pos[0]), L'•');
+    wc = get_apple_char(utf8);
+    mvadd_wchar(cy(game->apple_pos[1]), cx(game->apple_pos[0]), wc);
 
     move(0,0);
 
@@ -235,6 +301,8 @@ int main(void)
     initscr();
 
     setvbuf(stdout,NULL,_IOFBF,8192);
+
+    utf8 = strcmp(nl_langinfo(CODESET), "UTF-8") == 0; // detect utf8 availability
 
     nodelay(stdscr, TRUE);
     keypad(stdscr, TRUE);
