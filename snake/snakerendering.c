@@ -184,7 +184,7 @@ void draw_utf8_warning(){
 
 void render(struct SnakeGame *game)
 {
-    clear();
+    erase();
     draw_bg();
     draw_frame();
     curs_set(0);
