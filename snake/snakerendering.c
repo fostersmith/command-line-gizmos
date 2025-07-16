@@ -157,29 +157,29 @@ void draw_bg()
 
 void draw_gameover(struct SnakeGame *game){
 
-    print_center_str(-1, game->state==LOSE ? "  GAME OVER!  " : "  YOU WIN!!!  ");
+    print_center_str(-1, game->state==LOSE ? "  game over!  " : "  YOU WIN!!!  ");
 
     char msg[64];
-    snprintf(msg, sizeof(msg), "  YOUR SCORE: %d  ", game->snake_head_ind);
+    snprintf(msg, sizeof(msg), "  your score: %d  ", game->snake_head_ind);
     print_center_str(0, msg);
-    print_center_str(1, "  PRESS ENTER KEY TO CONTINUE...  ");
+    print_center_str(1, "  press enter key to continue...  ");
 }
 
 void draw_pause(struct SnakeGame *game){
-    print_center_str(-HEIGHT/2-5, "PAUSED");
+    print_center_str(-HEIGHT/2-5, "paused");
 
     char msg[64];
-    snprintf(msg, sizeof(msg), "CURRENT SCORE: %d", game->snake_head_ind);
+    snprintf(msg, sizeof(msg), "current score: %d", game->snake_head_ind);
     print_center_str(-HEIGHT/2-4, msg);
 
-    print_center_str(-HEIGHT/2-3, "PRESS P TO CONTINUE");
+    print_center_str(-HEIGHT/2-3, "press p to continue...");
 }
 
 void draw_utf8_warning(){
-    print_center_str(HEIGHT/2+3, "This game looks better with UTF-8!");
-    print_center_str(HEIGHT/2+4, "If your system supports the UTF-8");
+    print_center_str(HEIGHT/2+3, "this game looks better with UTF-8!");
+    print_center_str(HEIGHT/2+4, "if your system supports the UTF-8");
     print_center_str(HEIGHT/2+5, "locale, try setting LANG='C.UTF-8'");
-    print_center_str(HEIGHT/2+7, "Disable this message with --no-utf8-warning");
+    print_center_str(HEIGHT/2+7, "disable this message with --no-utf8-warning");
 }
 
 void render(struct SnakeGame *game)

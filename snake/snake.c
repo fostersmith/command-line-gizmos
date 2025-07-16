@@ -1,10 +1,10 @@
 #define _XOPEN_SOURCE_EXTENDED
 
-#include<curses.h>
-#include<stdlib.h>
-#include<unistd.h>
-#include<locale.h>
-#include<wchar.h>
+#include <curses.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <locale.h>
+#include <wchar.h>
 #include <signal.h>
 #include <errno.h>
 #include <time.h>
@@ -46,10 +46,10 @@ enum GameState play_snake(){
             continue;
         }
 
-        in = in_raw == KEY_UP ? UP
-            : in_raw == KEY_DOWN ? DOWN
-            : in_raw == KEY_LEFT ? LEFT
-            : in_raw == KEY_RIGHT ? RIGHT
+        in =  in_raw == KEY_UP      || in_raw == 'w' ? UP
+            : in_raw == KEY_DOWN    || in_raw == 's' ? DOWN
+            : in_raw == KEY_LEFT    || in_raw == 'a' ? LEFT
+            : in_raw == KEY_RIGHT   || in_raw == 'd' ? RIGHT
             : NO_INPUT;
         
         result = step_game(&game, in);
@@ -75,26 +75,43 @@ enum GameState play_snake(){
 }
 
 void print_help(){
-    printf("Command-line snake! Written by Foster Smith\n\n");
-    printf("Arguments:\n");
-    printf("\t--help, -h\t\tShow this screen\n");
-    printf("\t--no-utf8-warning\tDon't print UTF-8 warning message\n\n");
-    printf("Controls:\n");
-    printf("\tArrow Keys:\t\tControl Snake Direction\n");
-    printf("\tP / Space:\t\tPause or Unpause Game\n");
+    printf("command-line snake, written by Foster Smith\n\n");
+    printf("arguments:\n");
+    printf("\t--help, -h\t\tshow this screen\n");
+    printf("\t--seed, -s\t\tset seed for apple spawning\n");
+    printf("\t--no-utf8-warning\tdon't show utf-8 warning message\n\n");
+    printf("controls:\n");
+    printf("\tarrow Keys:\t\tcontrol snake direction\n");
+    printf("\tp / ppace:\t\tpause or unpause game\n");
 }
 
 int main(int argc, char *argv[])
 {
+    int seed = time(NULL);
     for(int i = 1; i < argc; ++i){
         if(strcmp(argv[i], "--help") == 0 || strcmp(argv[i], "-h") == 0){
             print_help();
             return 0;
         }
-        if(strcmp(argv[i], "--no-utf8-warning") == 0){
+        else if(strcmp(argv[i], "--no-utf8-warning") == 0){
             show_utf8_warning = false;
         }
+        else if(strcmp(argv[i], "--seed") == 0 || strcmp(argv[i], "-s") == 0){
+            if(i+1 < argc){
+                seed = atoi(argv[i + 1]);
+                i += 1;
+            } else {
+                printf("Must provide seed\n");
+                return 1;
+            }
+        }
+
+        if(strcmp(argv[i], "--debug") == 0){
+            printf("Seed: %d\n", seed);
+        }
     }
+
+    srand(seed);
 
     play_snake();
 
