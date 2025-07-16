@@ -30,7 +30,7 @@ enum GameState play_snake(){
 
     while(result == PLAYING){
         render(&game);
-        sleep_ignore_interrupt(0, 3E8);
+        sleep_ignore_interrupt(0, 2E8);
 
         in_raw = getch();
 
@@ -101,4 +101,5 @@ int main(int argc, char *argv[])
     return 0;
 }
 
+// sudo apt-get install libncurses-dev
 // gcc -Wall snake.c -lncursesw -o snake
