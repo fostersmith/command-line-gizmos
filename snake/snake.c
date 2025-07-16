@@ -98,8 +98,6 @@ int main(int argc, char *argv[])
 
     play_snake();
 
-    printf("End.\n");
-    sleep(5);
     return 0;
 }
 
