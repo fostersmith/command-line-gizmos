@@ -12,6 +12,7 @@
 
 #include "snakelib.c"
 #include "snakerendering.c"
+#include "../cargparse/cargparse.c"
 
 void sleep_ignore_interrupt(int s, int ns){
     struct timespec req = {s, ns}, rem;
@@ -74,41 +75,28 @@ enum GameState play_snake(){
     return game.state;
 }
 
-void print_help(){
-    printf("command-line snake, written by Foster Smith\n\n");
-    printf("arguments:\n");
-    printf("\t--help, -h\t\tshow this screen\n");
-    printf("\t--seed, -s\t\tset seed for apple spawning\n");
-    printf("\t--no-utf8-warning\tdon't show utf-8 warning message\n\n");
-    printf("controls:\n");
-    printf("\tarrow Keys:\t\tcontrol snake direction\n");
-    printf("\tp / ppace:\t\tpause or unpause game\n");
-}
-
 int main(int argc, char *argv[])
 {
-    int seed = time(NULL);
-    for(int i = 1; i < argc; ++i){
-        if(strcmp(argv[i], "--help") == 0 || strcmp(argv[i], "-h") == 0){
-            print_help();
-            return 0;
-        }
-        else if(strcmp(argv[i], "--no-utf8-warning") == 0){
-            show_utf8_warning = false;
-        }
-        else if(strcmp(argv[i], "--seed") == 0 || strcmp(argv[i], "-s") == 0){
-            if(i+1 < argc){
-                seed = atoi(argv[i + 1]);
-                i += 1;
-            } else {
-                printf("Must provide seed\n");
-                return 1;
-            }
-        }
+    CARGPARSE_MOTD = "terminal snake, written by foster smith";
 
-        if(strcmp(argv[i], "--debug") == 0){
-            printf("Seed: %d\n", seed);
-        }
+    setlocale(LC_ALL, "");
+
+    utf8 = using_utf8();
+    int seed = time(NULL);
+
+    int debug = 1;
+    disable_utf8_warning = 1;
+
+    ArgSpec specs[] = {
+        {&disable_utf8_warning, "--no-utf8-warn", "-n", "Disable UTF-8 Warning", ARG_TYPE_BOOL, (void *)1, 0},
+        {&utf8, "--utf8", "-u", "Use UTF-8", ARG_TYPE_BOOL, (void *)1, 0},
+        {&seed, "--seed", "-s", "Set Seed for Randomization", ARG_TYPE_INT, NULL, 0},
+        {&debug, "--debug", "-d", "Debug Mode", ARG_TYPE_BOOL, NULL, 0},
+    };
+
+    if(parse_args(argc, argv, 3, specs) != 0) return 1;
+
+    if(debug){
     }
 
     srand(seed);

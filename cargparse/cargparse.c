@@ -1,7 +1,11 @@
+// TODO 
+
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
+
+char *CARGPARSE_MOTD = "Set me with CARGPARSE_MOTD!";
 
 typedef enum {
     ARG_TYPE_STRING,
@@ -9,6 +13,7 @@ typedef enum {
     ARG_TYPE_BOOL
 } ARG_TYPE;
 
+// Warning! If type == ARG_TYPE_BOOL, target must point to 4 bytes
 typedef struct {
     const void *target;
     const char *name;
@@ -20,8 +25,79 @@ typedef struct {
     const size_t buffer_size;
 } ArgSpec;
 
-static void arg_error(const char *opt, char *msg){
-    printf("Error: Cannot parse argument '%s': %s\n", opt, msg);
+// static void print_spec_val(ArgSpec *spec){
+//     if(spec->target == NULL){
+//         printf("Spec %s: NULL\n", spec->name);
+//     }
+//     else {
+//         switch(spec->type){
+//             case ARG_TYPE_BOOL:
+//             case ARG_TYPE_INT:
+//                 int *vali = (int*)spec->target;
+//                 printf("Spec %s: %d\n", spec->name, *vali);
+//                 break;
+//             case ARG_TYPE_STRING:
+//                 char *val = (char*)spec->target;
+//                 printf("Spec %s: %s\n", spec->name, val);
+//         }
+//     }
+// }
+
+// static void print_spec_vals(int specc, ArgSpec specs[]){
+//     for(int s = 0; s < specc; ++s){
+//         ArgSpec spec = specs[s];
+//         print_spec_val(&spec);
+//     }
+// }
+
+static int check_spec(ArgSpec *spec){
+    if(spec->name == NULL){
+        printf("Must provide name for all specs.\n");
+        return 1;
+    } 
+    if(spec->target == NULL){
+        printf("Must provide target for spec '%s'.\n", spec->name);
+        return 1;
+    } 
+    if(spec->type!=ARG_TYPE_BOOL && spec->type!=ARG_TYPE_INT && spec->type!=ARG_TYPE_STRING){
+        printf("Invalid arg type for spec '%s'.\n", spec->name);
+        return 1;
+    }
+    if(spec->required != 0 && spec->required != 1){
+        printf("'required' should be 1 or 0 for spec '%s'.\n", spec->name);
+        return 1;
+    } 
+    if(spec->type == ARG_TYPE_STRING && spec->buffer_size == 0){
+        printf("Must to specify buffer size for string spec '%s'.\n", spec->name);
+        return 1;
+    }
+    if(spec->short_name != NULL) {
+        if(strlen(spec->short_name) != 2 || spec->short_name[0] != '-'){
+            printf("Invalid short name for spec '%s': should have one dash and one character.\n", spec->name);
+            return 1;
+        }
+    }
+    return 0;
+}
+
+static void print_help(int specc, ArgSpec specs[]){
+    if(CARGPARSE_MOTD != NULL){
+        printf("%s\n\n", CARGPARSE_MOTD);
+    }
+    printf("Options:\n");
+    printf("  %-20s %s\n", "--help, -h", "Show this screen");
+    char name_buffer[100];
+    for(int s = 0; s < specc; ++s){
+        ArgSpec spec = specs[s];
+        const char *name = spec.name;
+        const char *short_name = (spec.short_name == NULL) ? "" : spec.short_name;
+        const char *desc = (spec.description == NULL) ? "" : spec.description;
+        if(short_name != NULL)
+            snprintf(name_buffer, sizeof(name_buffer), "%s, %s", name, short_name);
+        else
+            snprintf(name_buffer, sizeof(name_buffer), "%s", name);
+        printf("  %-20s %s\n", name_buffer, desc);
+    }
 }
 
 /*
@@ -81,87 +157,104 @@ static int process_arg(ArgSpec *spec, char *in){
             return 1;
         default:
             return 1;
+
     }
 }
 
-static int parse_long_arg(int argc, char *argv[], int specc, ArgSpec specs[], char *arg, int *a, int found_l[]){
-    // Find ArgSpec
-    int found = 0;
-    int res;
-
+static int findspec(int specc, ArgSpec specs[], char *arg){
     for(int s = 0; s < specc; ++s){
         ArgSpec spec = specs[s];
-        if( strcmp(arg, spec.name) == 0 ){
-            found = 1;
-            found_l[s] = 1;
-
-            char *in = NULL;
-            if(*a + 1 < argc){
-                in = argv[*a+1];
-            }
-
-            res = process_arg(&spec, in);
-            switch(res) {
-                case 0:
-                    (*a)++;
-                    break;
-                case 2:
-                    break;
-                default:
-                    return res;
+        if(strcmp(arg, spec.name) == 0) {
+            return s;
+        }
+        if(spec.short_name != NULL){
+            if(strcmp(arg, spec.short_name) == 0){
+                return s;
             }
         }
     }
+    return -1;
+}
 
-    if(found == 0){
-        arg_error(arg, "Unrecognized argument.");
-        return 1;
+static int process_flag_string(int specc, ArgSpec specs[], int found_l[], char *arg){
+    int arglen = strlen(arg);
+    int specn;
+    int res;
+
+    int i = arg[0] == '-' ? 1 : 0;
+    for(; i < arglen; ++i){
+        char arg_ver[3] = {'-', arg[i], '\0'};
+        specn = findspec(specc, specs, arg_ver);
+        if(specn != -1){
+            res = process_arg(&specs[specn], NULL);
+            if(res != 0 && res != 2){
+                printf("Can't process option '%s' as boolean flag.\n", specs[specn].name);
+                return res;
+            } else {
+                found_l[specn] = 1;
+            }
+        } else {
+            printf("Unrecognized flag '%s'\n", arg_ver);
+            return 1;
+        }
     }
 
     return 0;
 }
 
-static int parse_short_arg(int argc, char *argv[], int specc, ArgSpec specs[], char *arg, int *a, int found_l[]){
-    // int found = 0;
-    // for(int c = 1; c < sizeof(arg); ++c){
-    //     char copt = arg[c];
-    //     for(int s = 0; s < specc; ++s){
-    //         ArgSpec spec = specs[s];
-    //         if(spec.short_name == copt){
-    //             found = 1;
-    //             if(spec.type == )
-    //         }
-    //     }
-    // }
-
-    printf("Short args aren't implemented yet.\n");
-    return 1;
-}
-
 int parse_args(int argc, char *argv[], int specc, ArgSpec specs[]) {
+
+    for(int s = 0; s < specc; ++s){
+        int valid = check_spec(&specs[s]);
+        if(valid != 0) return 1;
+    }
+
     int found_l[specc];
     memset(found_l, 0, sizeof(found_l));
 
     for(int a = 1; a < argc; ++a){
         char *arg = argv[a];
+        int arglen = strlen(arg);
+        char *val;
         int res;
+        int specn;
 
-        if(sizeof(arg) < 2){
-            arg_error(arg, "Arguments should be at least 2 characters.");
+        if(arglen < 2){
+            printf("Couldn't parse arg %s: Arguments should be at least 2 characters.\n", arg);
             return 1;
         }
-        if(arg[0] == '-' && arg[1] == '-'){
-            res = parse_long_arg(argc, argv, specc, specs, arg, &a, found_l);
+
+        if( strcmp(arg, "--help") == 0 || strcmp(arg, "-h") == 0 ){
+            print_help(specc, specs);
+            return 1;
         }
-        else if(arg[0] == '-'){
-            res = parse_short_arg(argc, argv, specc, specs, arg, &a, found_l);
+
+        specn = findspec(specc, specs, arg);
+
+        if(specn != -1){
+            // Standard
+            found_l[specn] = 1;
+
+            if(a+1 < argc)
+                val = argv[a+1];
+            else
+                val = NULL;
+            
+            res = process_arg(&specs[specn], val);
+            switch(res) {
+                case 0:
+                    ++a;
+                    break;
+                case 2:
+                    break;
+                default:
+                    printf("Failed to process arg %s\n", arg);
+                    return 1;
+            }
         } else {
-            arg_error(arg, "Unrecognized format.");
-            return 1;
-        }
-
-        if(res != 0){
-            return res;
+            // Flag string (e.g. -sao)
+            res = process_flag_string(specc, specs, found_l, arg);
+            if(res != 0) return res;
         }
     }
 

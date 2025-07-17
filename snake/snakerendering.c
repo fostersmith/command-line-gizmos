@@ -1,7 +1,7 @@
-bool utf8;
-bool show_utf8_warning = true;
+int utf8 = 0;
+int disable_utf8_warning = 0;
 
-bool using_utf8(){
+int using_utf8(){
     return strcmp(nl_langinfo(CODESET), "UTF-8") == 0;
 }
 
@@ -189,7 +189,7 @@ void render(struct SnakeGame *game)
     draw_frame();
     curs_set(0);
 
-    if(!utf8 && show_utf8_warning){
+    if(!utf8 && !disable_utf8_warning){
         draw_utf8_warning();
     }
 
@@ -264,8 +264,6 @@ void render_init(){
     initscr();
 
     setvbuf(stdout,NULL,_IOFBF,8192);
-
-    utf8 = using_utf8(); // detect utf8 availability
 
     nodelay(stdscr, TRUE);
     keypad(stdscr, TRUE);
