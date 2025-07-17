@@ -65,11 +65,8 @@ static void render_pillars(const Game *game, const ScreenSpec *s){
 static void render_frame(const Game *game, const ScreenSpec *s){
     int top_line_y = LINES/2 + s->window_h/2 + 1;
     int bot_line_y = LINES/2 - s->window_h/2 - 1;
-    // int left_line_x = COLS/2 - s->window_w/2 - 1;
-    // int right_line_x = COLS/2 + s->window_w/2 + 1;
-
-    int left_line_x = 10;
-    int right_line_x = 20;
+    int left_line_x = COLS/2 - s->window_w/2 - 1;
+    int right_line_x = COLS/2 + s->window_w/2 + 1;
 
     for(int y = bot_line_y; y <= top_line_y; ++y){
         mvadd_wchar(y, left_line_x, get_frame_char(s));
@@ -77,8 +74,8 @@ static void render_frame(const Game *game, const ScreenSpec *s){
     }
 
     for(int x = left_line_x; x <= right_line_x; ++x){
-        mvadd_wchar(x, top_line_y, get_frame_char(s));
-        mvadd_wchar(x, bot_line_y, get_frame_char(s));
+        mvadd_wchar(top_line_y, x, get_frame_char(s));
+        mvadd_wchar(bot_line_y, x, get_frame_char(s));
     }
 }
 
@@ -91,10 +88,12 @@ void render_init(){
 
     nodelay(stdscr, TRUE);
     keypad(stdscr, TRUE);
+    curs_set(0);
     noecho();
 }
 
 void render_end(){
+    curs_set(1);
     endwin();
 }
 
@@ -114,7 +113,7 @@ ScreenSpec get_screenspec(const Game *game){
 void render(const Game *game, const ScreenSpec *s){
     erase();
     render_frame(game, s);
-    // render_pillars(game, s);
-    // render_bird(game, s);
+    render_pillars(game, s);
+    render_bird(game, s);
     refresh();
 }

@@ -14,7 +14,7 @@
 // Pillar gap height
 #define PILLAR_GAP_H (double)5
 // Pillar speed u/ns
-#define PILLAR_S 0//(double)1.0E-9
+#define PILLAR_S (double)1.0E-9
 // For collision detection
 #define HITBOX_RADIUS (double)1
 // Jump Velocity

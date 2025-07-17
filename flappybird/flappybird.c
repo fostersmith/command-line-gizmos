@@ -18,9 +18,15 @@ int main(){
 
         nanoseconds_elapsed = (end.tv_sec - start.tv_sec) * 1000000000LL + (end.tv_nsec - start.tv_nsec);
 
-        //over = do_timestep(&game, (double)nanoseconds_elapsed);
+        over = do_timestep(&game, (double)nanoseconds_elapsed);
+
+        //DEBUG
+        if(over != 0 )
+            game.bird.y = game.h/2.0;
+        over = 0;
+
     } while(over == 0);
-    
+
     render_end();
 
 }
