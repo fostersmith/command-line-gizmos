@@ -1,52 +1,4 @@
-#include<stdlib.h>
-#include<string.h>
-
-#define WIDTH 20
-#define HEIGHT 10
-
-enum GameState 
-{
-    WIN,
-    LOSE,
-    PLAYING
-};
-
-enum Input
-{
-    NO_INPUT,
-    LEFT,
-    RIGHT,
-    UP,
-    DOWN
-};
-
-enum TileState
-{
-    SNAKE,
-    APPLE,
-    BLANK
-};
-
-struct SnakeGame 
-{
-    // holds information about snake (used to place apples)
-    // should be updated every timestep
-    bool game_matrix[WIDTH][HEIGHT];
-
-    // list of snake coordinates
-    // head is last entry
-    int snake[WIDTH*HEIGHT][2];
-    int snake_head_ind;
-
-    // pos of apple (x, y)
-    int apple_pos[2];
-
-    // last input
-    enum Input last_input;
-
-    // state of game
-    enum GameState state;
-};
+#include "snake.h"
 
 void update_game_matrix(struct SnakeGame *game){
     // Clear out array
@@ -112,7 +64,7 @@ enum GameState step_game(struct SnakeGame *game, enum Input input)
         next_head[0] = game->snake[game->snake_head_ind][0];
         next_head[1] = game->snake[game->snake_head_ind][1]+1;
         game->last_input = UP;
-    } else if(input == DOWN){
+    } /*(input == DOWN)*/{
         next_head[0] = game->snake[game->snake_head_ind][0];
         next_head[1] = game->snake[game->snake_head_ind][1]-1;
         game->last_input = DOWN;

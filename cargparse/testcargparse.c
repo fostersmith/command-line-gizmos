@@ -1,9 +1,7 @@
-#include "cargparse.c"
+#include "cargparse.h"
 
 int main(int argc, char **argv)
 {
-    CARGPARSE_MOTD = "Test case for cargparse";
-
     int boolarg1 = 0;
     int boolarg2 = 0;
     char stringarg[64];
