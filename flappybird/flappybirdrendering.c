@@ -66,6 +66,11 @@ static void render_pillar(const Game *game, const int pillar_i, const ScreenSpec
     for(int y = top_y; y >= screen_top; --y){
         mvadd_wchar(y, x, get_pillar_char(s));
     }
+
+    if(dev_mode){
+        mvprintw(ty(-2, s), x, "x:%f", pillar->x);
+        mvprintw(ty(-3, s), x, "x:%d", x);
+    }
 }
 
 static void render_pillars(const Game *game, const ScreenSpec *s){

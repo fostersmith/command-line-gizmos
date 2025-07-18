@@ -11,13 +11,15 @@
     #include <time.h>
     #include <locale.h>
 
+    #include "../cargparse/cargparse.h"
+
     // Constants //
     // Pillar count
-    #define PILLAR_C 4
+    #define PILLAR_C 6
     // Pillar gap height
     #define PILLAR_GAP_H (double)6
     // Pillar speed u/ns
-    #define PILLAR_S (double)2.0E-9
+    #define PILLAR_S (double)4.0E-9
     // For collision detection
     #define HITBOX_RADIUS (double)0.5
     // Jump Velocity
@@ -28,6 +30,8 @@
     #define INPUT_COOLDOWN_NS (long)1E8
     // Gravitational Constant u/ns^2
     #define GRAVITY (double)-3E-17
+
+    extern int dev_mode;
 
     // Structs //
     typedef struct {

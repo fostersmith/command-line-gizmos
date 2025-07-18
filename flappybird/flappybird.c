@@ -1,6 +1,8 @@
 #include "flappybird.h"
 
-int main(){
+int dev_mode;
+
+static int game_loop(){
     int in;
     uint8_t over;
     struct timespec start, end;
@@ -8,8 +10,6 @@ int main(){
 
     Game game = init_flappybird(100, 20, 4, time(NULL));
     ScreenSpec spec = get_screenspec(&game);
-
-    render_init();
 
     do {
         clock_gettime(CLOCK_MONOTONIC, &start);
@@ -26,12 +26,26 @@ int main(){
 
         over = do_timestep(&game, (double)nanoseconds_elapsed);
 
-        //DEBUG
-        // if(over != 0 )
-        //     game.bird.y = game.h/2.0;
-        // over = 0;
+        // DEBUGS HERE
+        if(dev_mode)
+        {
+            over = 0;
+        }
 
     } while(over == 0);
 
+    return 0;
+}
+
+int main(int argc, char *argv[]){
+    ArgSpec specs[] = {
+        {&dev_mode, "--dev-mode", "-d", "Developer Mode", ARG_TYPE_BOOL, (void *)0, 0},
+    };
+    if(parse_args(argc, argv, 1, specs) != 0) return 1;
+
+    render_init();
+    game_loop();
     render_end();
+
+    return 0;
 }
