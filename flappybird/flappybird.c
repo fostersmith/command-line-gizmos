@@ -19,7 +19,17 @@ static int game_loop(){
             if(in == KEY_UP || in == ' ' || in == 'w'){
                 game.got_input = 1;
             }
+
+            if(dev_mode){
+                game.got_input = 0;
+                if(in == KEY_UP || in == ' ' || in == 'w'){
+                    game.bird.y += (game.h)/spec.window_h;
+                } else if(in == KEY_DOWN || in == 's'){
+                    game.bird.y -= (game.h)/spec.window_h;
+                }
+            }
         }
+
         clock_gettime(CLOCK_MONOTONIC, &end);
 
         nanoseconds_elapsed = (end.tv_sec - start.tv_sec) * 1000000000LL + (end.tv_nsec - start.tv_nsec);
@@ -29,6 +39,10 @@ static int game_loop(){
         // DEBUGS HERE
         if(dev_mode)
         {
+            if(over == 1){
+                mvprintw(2, 0, "DEAD");
+                refresh();
+            }
             over = 0;
         }
 

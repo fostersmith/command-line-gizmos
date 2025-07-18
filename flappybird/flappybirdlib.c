@@ -35,8 +35,16 @@ static int apply_physics(Game *game, const double delta_time_ns){
     double v0 = bird->vy;
     double y0 = bird->y;
 
-    double delta_v = GRAVITY*delta_time_ns;
-    double delta_y = v0*delta_time_ns + 0.5*GRAVITY*delta_time_ns*delta_time_ns;
+    double delta_v;
+    double delta_y;
+
+    delta_v = GRAVITY*delta_time_ns;
+    delta_y= v0*delta_time_ns;
+
+    if(dev_mode){
+        delta_v = 0;
+        delta_y = v0*delta_time_ns;
+    }
 
     bird->vy = v0 + delta_v;
     if(bird->vy < -TERMINAL_V){
@@ -73,7 +81,7 @@ Game init_flappybird(const double w, const double h, const double bird_x, const 
     srand(seed);
 
     Game game = {
-        .bird = { .y = h / 2.0, .vy = JUMP_V },
+        .bird = { .y = h / 2.0, .vy = 0 },
         .got_input = 0,
         .w = w,
         .h = h,

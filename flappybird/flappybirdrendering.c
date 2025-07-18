@@ -21,7 +21,7 @@ static wchar_t get_frame_char(const ScreenSpec *s);
 // Implementations //
 
 static int tx(const double x, const ScreenSpec *s){
-    return round(x*s->x_scale - s->window_w/2 + COLS/2);
+    return round(x*s->x_scale) - s->window_w/2 + COLS/2;
 }
 static int ty(const double y, const ScreenSpec *s){
     return round(s->window_h/2 - y*s->y_scale + LINES/2);
@@ -52,6 +52,8 @@ static void render_bird(const Game *game, const ScreenSpec *s){
 static void render_pillar(const Game *game, const int pillar_i, const ScreenSpec *s){
     const Pillar *pillar = &game->pillars[pillar_i];
 
+    double bias = fmod(0.1*pillar_i, 1.0);
+
     // Screenspace coords (inverts y)
     int top_y = ty(pillar->gap_y+PILLAR_GAP_H/2.0, s);
     int bottom_y = ty(pillar->gap_y-PILLAR_GAP_H/2.0, s);
@@ -79,12 +81,12 @@ static void render_pillars(const Game *game, const ScreenSpec *s){
     }
 }
 static void render_frame(const Game *game, const ScreenSpec *s){
-    int top_line_y = LINES/2 + s->window_h/2 + 1;
-    int bot_line_y = LINES/2 - s->window_h/2 - 1;
-    int left_line_x = COLS/2 - s->window_w/2 - 1;
-    int right_line_x = COLS/2 + s->window_w/2 + 1;
+    int top_line_y = ty(game->h, s)-1;
+    int bot_line_y = ty(0, s)+1;
+    int left_line_x = tx(0, s)-1;
+    int right_line_x = tx(game->w, s)+1;
 
-    for(int y = bot_line_y; y <= top_line_y; ++y){
+    for(int y = top_line_y; y <= bot_line_y; ++y){
         mvadd_wchar(y, left_line_x, get_frame_char(s));
         mvadd_wchar(y, right_line_x, get_frame_char(s));
     }
@@ -114,9 +116,25 @@ void render_end(){
 }
 
 ScreenSpec get_screenspec(const Game *game){
+    int goal_w = 2*COLS/3;
+    int goal_h = 2*LINES/3;
+
+    // screen_w/PILLAR_C should be int to avoid resolution mismatch (i.e. columns appear to move independently)
+    // this attempts to scale the window width to play nicely
+    int res_w = round(goal_w/PILLAR_C) * PILLAR_C;
+    int res_h = (int)((double)res_w / goal_w * goal_h);
+
+    if(
+        res_h < 5 || res_h > LINES ||
+        res_w < 5 || res_w > COLS
+    ){
+        res_h = goal_h;
+        res_w = goal_w;
+    }
+
     ScreenSpec spec = {
-        .window_w = 100,
-        .window_h = 20,
+        .window_w = res_w,
+        .window_h = res_h,
         .utf8 = 0
     };
 
@@ -131,5 +149,11 @@ void render(const Game *game, const ScreenSpec *s){
     render_frame(game, s);
     render_pillars(game, s);
     render_bird(game, s);
+
+    if(dev_mode){
+        mvprintw(0,0,"Window Width:  %d/%d", s->window_w, COLS);
+        mvprintw(1,0,"Window Height: %d/%d", s->window_h, LINES);
+    }
+
     refresh();
 }
