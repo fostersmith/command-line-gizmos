@@ -15,7 +15,7 @@
 
     // Constants //
     // Pillar count
-    #define PILLAR_C 6
+    #define PILLAR_C 7
     // Pillar gap height
     #define PILLAR_GAP_H (double)4
     // Pillar speed u/ns
