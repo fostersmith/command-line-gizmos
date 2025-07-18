@@ -87,6 +87,12 @@ int main(int argc, char *argv[])
 
     srand(seed);
 
+    // render_init();
+    // nodelay(stdscr, FALSE);
+    // int ch = getch();
+    // printw("Pressed: %d\n", ch);
+    // refresh();
+
     play_snake();
 
     return 0;

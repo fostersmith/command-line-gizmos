@@ -64,7 +64,7 @@ enum GameState step_game(struct SnakeGame *game, enum Input input)
         next_head[0] = game->snake[game->snake_head_ind][0];
         next_head[1] = game->snake[game->snake_head_ind][1]+1;
         game->last_input = UP;
-    } /*(input == DOWN)*/{
+    } else /*input==DOWN*/{
         next_head[0] = game->snake[game->snake_head_ind][0];
         next_head[1] = game->snake[game->snake_head_ind][1]-1;
         game->last_input = DOWN;
