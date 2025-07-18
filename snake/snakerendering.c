@@ -1,3 +1,5 @@
+#include "snake.h"
+
 int utf8 = 0;
 int disable_utf8_warning = 0;
 
@@ -204,8 +206,8 @@ void render(struct SnakeGame *game)
         x = game->snake[i][0];
 
         // detect to and from
-        enum Input to;
-        enum Input from;
+        enum Input to = NO_INPUT;
+        enum Input from = NO_INPUT;
 
         if(i != 0){
             if(game->snake[i-1][0] == game->snake[i][0]){
@@ -263,9 +265,8 @@ void render_init(){
 
     initscr();
 
-    setvbuf(stdout,NULL,_IOFBF,8192);
-
     nodelay(stdscr, TRUE);
     keypad(stdscr, TRUE);
+    cbreak();
     noecho();
 }

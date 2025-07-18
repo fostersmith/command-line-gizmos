@@ -1,18 +1,4 @@
-#define _XOPEN_SOURCE_EXTENDED
-
-#include <curses.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <locale.h>
-#include <wchar.h>
-#include <signal.h>
-#include <errno.h>
-#include <time.h>
-#include <langinfo.h>
-
-#include "snakelib.c"
-#include "snakerendering.c"
-#include "../cargparse/cargparse.c"
+#include "snake.h"
 
 void sleep_ignore_interrupt(int s, int ns){
     struct timespec req = {s, ns}, rem;
@@ -100,6 +86,12 @@ int main(int argc, char *argv[])
     }
 
     srand(seed);
+
+    // render_init();
+    // nodelay(stdscr, FALSE);
+    // int ch = getch();
+    // printw("Pressed: %d\n", ch);
+    // refresh();
 
     play_snake();
 
