@@ -81,12 +81,12 @@ static void render_pillars(const Game *game, const ScreenSpec *s){
     }
 }
 static void render_frame(const Game *game, const ScreenSpec *s){
-    int top_line_y = LINES/2 + round((double)s->window_h/2);
-    int bot_line_y = LINES/2 - round((double)s->window_h/2) - 1;
-    int left_line_x = COLS/2 - round((double)s->window_w/2) - 1;
-    int right_line_x = COLS/2 + round((double)s->window_w/2) + 1;
+    int top_line_y = ty(game->h, s)-1;
+    int bot_line_y = ty(0, s)+1;
+    int left_line_x = tx(0, s)-1;
+    int right_line_x = tx(game->w, s)+1;
 
-    for(int y = bot_line_y; y <= top_line_y; ++y){
+    for(int y = top_line_y; y <= bot_line_y; ++y){
         mvadd_wchar(y, left_line_x, get_frame_char(s));
         mvadd_wchar(y, right_line_x, get_frame_char(s));
     }
