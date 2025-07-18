@@ -27,13 +27,11 @@ int main(){
         over = do_timestep(&game, (double)nanoseconds_elapsed);
 
         //DEBUG
-        if(over != 0 )
-            game.bird.y = game.h/2.0;
-        over = 0;
+        // if(over != 0 )
+        //     game.bird.y = game.h/2.0;
+        // over = 0;
 
     } while(over == 0);
 
     render_end();
-
-    printf("In: %d\n", in);
 }

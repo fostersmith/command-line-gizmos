@@ -23,7 +23,7 @@
     // Jump Velocity
     #define JUMP_V (double)1.5E-8
     // Terminal Velocity
-    #define TERMINAL_V (double)1.5E-8
+    #define TERMINAL_V (double)100//(double)1.5E-8
     // Input Cooldown
     #define INPUT_COOLDOWN_NS (long)1E8
     // Gravitational Constant u/ns^2
