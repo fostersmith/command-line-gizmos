@@ -77,6 +77,12 @@ static void render_pillars(const Game *game, const ScreenSpec *s){
     for(int i = 0; i < PILLAR_C; ++i){
         render_pillar(game, i, s);
     }
+
+    if(dev_mode)
+    {
+        double pillar_distance = fabs(game->pillars[0].x - game->pillars[1].x);
+        mvprintw(0, 0, "Pillar Distance: %f", pillar_distance);
+    }
 }
 static void render_frame(const Game *game, const ScreenSpec *s){
     int top_line_y = LINES/2 + s->window_h/2 + 1;
