@@ -20,9 +20,9 @@ static uint8_t detect_collision(const Game *game){
     for(int i = 0; i < PILLAR_C; ++i){
         Pillar pillar = game->pillars[i];
         if(fabs(pillar.x - game->bird_x) <= HITBOX_RADIUS){ // check horizontal distance before checking euclidean
-            double top_dist = dist(pillar.x, pillar.gap_y+PILLAR_GAP_H/2.0, game->bird_x, game->bird.y);
-            double bottom_dist = dist(pillar.x, pillar.gap_y-PILLAR_GAP_H/2.0, game->bird_x, game->bird.y);
-            if(top_dist <= HITBOX_RADIUS || bottom_dist <= HITBOX_RADIUS){
+            if(pillar.gap_y + PILLAR_GAP_H/2.0 < game->bird.y + HITBOX_RADIUS){
+                return 1;
+            } else if(pillar.gap_y - PILLAR_GAP_H/2.0 > game->bird.y - HITBOX_RADIUS){
                 return 1;
             }
         }
@@ -44,11 +44,15 @@ static int apply_physics(Game *game, const double delta_time_ns){
     }
     bird->y = y0 + delta_y;
 
-    if( bird->y < 0 || bird->y > game->h){
-        return 1;
-    } else {
-        return 0;
+    if( bird->y < 0){
+        bird->y = 0;
+        bird->vy = 0;
+    } else if(bird->y > game->h) {
+        bird->y = game->h;
+        bird->vy = 0;
     }
+
+    return 0;
 }
 static void update_pillars(Game *game, const double delta_time_ns){
     Pillar *pillars = game->pillars;
@@ -90,7 +94,7 @@ uint8_t do_timestep(Game *game, const double delta_time_ns){
     game->input_cooldown -= delta_time_ns;
     if(game->input_cooldown <= 0) game->input_cooldown = 0;
 
-    if(game->got_input){
+    if(game->got_input == 1){
         if(game->input_cooldown > 0){
             game->got_input = 0;
         } else {

@@ -16,16 +16,15 @@ static void render_frame(const Game *game, const ScreenSpec *s);
 // Char Helpers
 static wchar_t get_bird_char(const ScreenSpec *s);
 static wchar_t get_pillar_char(const ScreenSpec *s);
-static wchar_t get_bg_char(const ScreenSpec *s);
 static wchar_t get_frame_char(const ScreenSpec *s);
 
 // Implementations //
 
 static int tx(const double x, const ScreenSpec *s){
-    return x*s->x_scale - s->window_w/2 + COLS/2;
+    return round(x*s->x_scale - s->window_w/2 + COLS/2);
 }
 static int ty(const double y, const ScreenSpec *s){
-    return s->window_h/2 - y*s->y_scale + LINES/2;
+    return round(s->window_h/2 - y*s->y_scale + LINES/2);
 }
 static int mvadd_wchar(const int y, const int x, const wchar_t wc){
     cchar_t cch;
@@ -42,9 +41,6 @@ static wchar_t get_bird_char(const ScreenSpec *s){
 static wchar_t get_pillar_char(const ScreenSpec *s){
     return '|';
 }
-static wchar_t get_bg_char(const ScreenSpec *s){
-    return ' ';
-}
 static wchar_t get_frame_char(const ScreenSpec *s){
     return '+';
 }
@@ -52,10 +48,20 @@ static wchar_t get_frame_char(const ScreenSpec *s){
 static void render_bird(const Game *game, const ScreenSpec *s){
     renderchar(game->bird_x, game->bird.y, get_bird_char(s), s);
 }
+// TODO rendering precision
 static void render_pillar(const Game *game, const int pillar_i, const ScreenSpec *s){
     const Pillar *pillar = &game->pillars[pillar_i];
-    renderchar(pillar->x, pillar->gap_y+PILLAR_GAP_H/2.0, get_pillar_char(s), s);
-    renderchar(pillar->x, pillar->gap_y-PILLAR_GAP_H/2.0, get_pillar_char(s), s);
+
+    int top_y = round(pillar->gap_y+PILLAR_GAP_H/2.0);
+    int bottom_y = round(pillar->gap_y-PILLAR_GAP_H/2.0);
+
+    for(int y = top_y; y <= s->window_h; ++y){
+        renderchar(pillar->x, y, get_pillar_char(s), s);
+    }
+
+    for(int y = bottom_y; y >= 0; --y){
+        renderchar(pillar->x, y, get_pillar_char(s), s);
+    }
 }
 static void render_pillars(const Game *game, const ScreenSpec *s){
     for(int i = 0; i < PILLAR_C; ++i){
