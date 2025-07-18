@@ -17,7 +17,7 @@ enum GameState play_snake(){
 
     while(result == PLAYING){
         render(&game);
-        sleep_ignore_interrupt(0, 2E8);
+        sleep_ignore_interrupt(0, 1.5E8);
 
         in_raw = getch();
 
