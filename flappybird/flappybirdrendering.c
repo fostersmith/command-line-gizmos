@@ -52,17 +52,22 @@ static void render_bird(const Game *game, const ScreenSpec *s){
 static void render_pillar(const Game *game, const int pillar_i, const ScreenSpec *s){
     const Pillar *pillar = &game->pillars[pillar_i];
 
-    int top_y = round(pillar->gap_y+PILLAR_GAP_H/2.0);
-    int bottom_y = round(pillar->gap_y-PILLAR_GAP_H/2.0);
+    // Screenspace coords (inverts y)
+    int top_y = ty(pillar->gap_y+PILLAR_GAP_H/2.0, s);
+    int bottom_y = ty(pillar->gap_y-PILLAR_GAP_H/2.0, s);
+    int screen_bottom = ty(0, s);
+    int screen_top = ty(game->h, s);
+    int x = tx(pillar->x, s);
 
-    for(int y = top_y; y <= s->window_h; ++y){
-        renderchar(pillar->x, y, get_pillar_char(s), s);
+    for(int y = bottom_y; y <= screen_bottom; ++y){
+        mvadd_wchar(y, x, get_pillar_char(s));
     }
 
-    for(int y = bottom_y; y >= 0; --y){
-        renderchar(pillar->x, y, get_pillar_char(s), s);
+    for(int y = top_y; y >= screen_top; --y){
+        mvadd_wchar(y, x, get_pillar_char(s));
     }
 }
+
 static void render_pillars(const Game *game, const ScreenSpec *s){
     for(int i = 0; i < PILLAR_C; ++i){
         render_pillar(game, i, s);
